@@ -15,6 +15,13 @@ func init() {
 }
 
 func Test_Param1(t *testing.T) {
+	m := Resize(0, 0, img, Lanczos3)
+	if m.Bounds() != img.Bounds() {
+		t.Fail()
+	}
+}
+
+func Test_Param1_Nearest(t *testing.T) {
 	m := Resize(0, 0, img, NearestNeighbor)
 	if m.Bounds() != img.Bounds() {
 		t.Fail()
@@ -22,6 +29,13 @@ func Test_Param1(t *testing.T) {
 }
 
 func Test_Param2(t *testing.T) {
+	m := Resize(100, 0, img, Lanczos3)
+	if m.Bounds() != image.Rect(0, 0, 100, 100) {
+		t.Fail()
+	}
+}
+
+func Test_Param2_Nearest(t *testing.T) {
 	m := Resize(100, 0, img, NearestNeighbor)
 	if m.Bounds() != image.Rect(0, 0, 100, 100) {
 		t.Fail()
@@ -31,6 +45,15 @@ func Test_Param2(t *testing.T) {
 func Test_ZeroImg(t *testing.T) {
 	zeroImg := image.NewGray16(image.Rect(0, 0, 0, 0))
 
+	m := Resize(0, 0, zeroImg, Lanczos3)
+	if m.Bounds() != zeroImg.Bounds() {
+		t.Fail()
+	}
+}
+
+func Test_ZeroImg_Nearest(t *testing.T) {
+	zeroImg := image.NewGray16(image.Rect(0, 0, 0, 0))
+
 	m := Resize(0, 0, zeroImg, NearestNeighbor)
 	if m.Bounds() != zeroImg.Bounds() {
 		t.Fail()
@@ -38,6 +61,15 @@ func Test_ZeroImg(t *testing.T) {
 }
 
 func Test_CorrectResize(t *testing.T) {
+	zeroImg := image.NewGray16(image.Rect(0, 0, 256, 256))
+
+	m := Resize(60, 0, zeroImg, Lanczos3)
+	if m.Bounds() != image.Rect(0, 0, 60, 60) {
+		t.Fail()
+	}
+}
+
+func Test_CorrectResize_Nearest(t *testing.T) {
 	zeroImg := image.NewGray16(image.Rect(0, 0, 256, 256))
 
 	m := Resize(60, 0, zeroImg, NearestNeighbor)
@@ -64,19 +96,42 @@ func Test_SameColor(t *testing.T) {
 	}
 }
 
+func Test_SameColor_Nearest(t *testing.T) {
+	img := image.NewRGBA(image.Rect(0, 0, 20, 20))
+	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
+		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
+			img.SetRGBA(x, y, color.RGBA{0x80, 0x80, 0x80, 0xFF})
+		}
+	}
+	out := Resize(10, 10, img, NearestNeighbor)
+	for y := out.Bounds().Min.Y; y < out.Bounds().Max.Y; y++ {
+		for x := out.Bounds().Min.X; x < out.Bounds().Max.X; x++ {
+			color := img.At(x, y).(color.RGBA)
+			if color.R != 0x80 || color.G != 0x80 || color.B != 0x80 || color.A != 0xFF {
+				t.Fail()
+			}
+		}
+	}
+}
+
 func Test_BoundCheck(t *testing.T) {
+	m := image.NewRGBA(image.Rect(0, 0, 20, 20))
+	m.Stride = 300
+	if _, err := ResizeSafe(100, 0, m, Lanczos3); err == nil {
+		t.Fail()
+	}
+	if r := Resize(100, 0, m, Lanczos3); r != nil {
+		t.Fail()
+	}
+}
+
+func Test_BoundCheck_Nearest(t *testing.T) {
 	m := image.NewRGBA(image.Rect(0, 0, 20, 20))
 	m.Stride = 300
 	if _, err := ResizeSafe(100, 0, m, NearestNeighbor); err == nil {
 		t.Fail()
 	}
-	if _, err := ResizeSafe(100, 0, m, Lanczos3); err == nil {
-		t.Fail()
-	}
 	if r := Resize(100, 0, m, NearestNeighbor); r != nil {
-		t.Fail()
-	}
-	if r := Resize(100, 0, m, Lanczos3); r != nil {
 		t.Fail()
 	}
 }

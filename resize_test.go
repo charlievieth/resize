@@ -64,6 +64,23 @@ func Test_SameColor(t *testing.T) {
 	}
 }
 
+func Test_BoundCheck(t *testing.T) {
+	m := image.NewRGBA(image.Rect(0, 0, 20, 20))
+	m.Stride = 300
+	if _, err := ResizeSafe(100, 0, m, NearestNeighbor); err == nil {
+		t.Fail()
+	}
+	if _, err := ResizeSafe(100, 0, m, Lanczos3); err == nil {
+		t.Fail()
+	}
+	if r := Resize(100, 0, m, NearestNeighbor); r != nil {
+		t.Fail()
+	}
+	if r := Resize(100, 0, m, Lanczos3); r != nil {
+		t.Fail()
+	}
+}
+
 func Benchmark_BigResizeLanczos3(b *testing.B) {
 	var m image.Image
 	for i := 0; i < b.N; i++ {

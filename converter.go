@@ -40,9 +40,15 @@ func clampUint16(in int64) uint16 {
 	return uint16(in)
 }
 
-func resizeGeneric(in image.Image, out *image.RGBA64, coeffs []int32, offset []int, filterLength int) {
+func resizeGeneric(in image.Image, out *image.RGBA64, coeffs []int32, offset []int, filterLength int) error {
 	oldBounds := in.Bounds()
 	newBounds := out.Bounds()
+	if newBounds.Max.X == newBounds.Min.X {
+		return nil
+	}
+	if newBounds.Max.Y == newBounds.Min.Y {
+		return nil
+	}
 
 	for x := newBounds.Min.X; x < newBounds.Max.X; x++ {
 		for y := newBounds.Min.Y; y < newBounds.Max.Y; y++ {
@@ -86,13 +92,25 @@ func resizeGeneric(in image.Image, out *image.RGBA64, coeffs []int32, offset []i
 			out.Pix[offset+7] = uint8(value)
 		}
 	}
+	return nil
 }
 
-func resizeRGBA(in *image.RGBA, out *image.RGBA, coeffs []int16, offset []int, filterLength int) {
+func resizeRGBA(in *image.RGBA, out *image.RGBA, coeffs []int16, offset []int, filterLength int) error {
 	oldBounds := in.Bounds()
 	newBounds := out.Bounds()
+	if newBounds.Max.X == newBounds.Min.X {
+		return nil
+	}
+	if newBounds.Max.Y == newBounds.Min.Y {
+		return nil
+	}
+
 	minX := oldBounds.Min.X * 4
 	maxX := (oldBounds.Max.X - oldBounds.Min.X - 1) * 4
+	maxRow := (newBounds.Max.X - oldBounds.Min.Y - 1) * in.Stride
+	if maxRow+maxX+3 >= len(in.Pix) {
+		return offsetError(maxRow+maxX+3, len(in.Pix))
+	}
 
 	for x := newBounds.Min.X; x < newBounds.Max.X; x++ {
 		row := in.Pix[(x-oldBounds.Min.Y)*in.Stride:]
@@ -128,13 +146,25 @@ func resizeRGBA(in *image.RGBA, out *image.RGBA, coeffs []int16, offset []int, f
 			out.Pix[xo+3] = clampUint8(rgba[3] / sum)
 		}
 	}
+	return nil
 }
 
-func resizeRGBA64(in *image.RGBA64, out *image.RGBA64, coeffs []int32, offset []int, filterLength int) {
+func resizeRGBA64(in *image.RGBA64, out *image.RGBA64, coeffs []int32, offset []int, filterLength int) error {
 	oldBounds := in.Bounds()
 	newBounds := out.Bounds()
+	if newBounds.Max.X == newBounds.Min.X {
+		return nil
+	}
+	if newBounds.Max.Y == newBounds.Min.Y {
+		return nil
+	}
+
 	minX := oldBounds.Min.X * 8
 	maxX := (oldBounds.Max.X - oldBounds.Min.X - 1) * 8
+	maxRow := (newBounds.Max.X - oldBounds.Min.Y - 1) * in.Stride
+	if maxRow+maxX+7 >= len(in.Pix) {
+		return offsetError(maxRow+maxX+7, len(in.Pix))
+	}
 
 	for x := newBounds.Min.X; x < newBounds.Max.X; x++ {
 		row := in.Pix[(x-oldBounds.Min.Y)*in.Stride:]
@@ -178,13 +208,25 @@ func resizeRGBA64(in *image.RGBA64, out *image.RGBA64, coeffs []int32, offset []
 			out.Pix[xo+7] = uint8(value)
 		}
 	}
+	return nil
 }
 
-func resizeGray(in *image.Gray, out *image.Gray, coeffs []int16, offset []int, filterLength int) {
+func resizeGray(in *image.Gray, out *image.Gray, coeffs []int16, offset []int, filterLength int) error {
 	oldBounds := in.Bounds()
 	newBounds := out.Bounds()
+	if newBounds.Max.X == newBounds.Min.X {
+		return nil
+	}
+	if newBounds.Max.Y == newBounds.Min.Y {
+		return nil
+	}
+
 	minX := oldBounds.Min.X
 	maxX := (oldBounds.Max.X - oldBounds.Min.X - 1)
+	maxRow := (newBounds.Max.X - oldBounds.Min.Y - 1) * in.Stride
+	if maxRow+maxX >= len(in.Pix) {
+		return offsetError(maxRow+maxX, len(in.Pix))
+	}
 
 	for x := newBounds.Min.X; x < newBounds.Max.X; x++ {
 		row := in.Pix[(x-oldBounds.Min.Y)*in.Stride:]
@@ -214,13 +256,25 @@ func resizeGray(in *image.Gray, out *image.Gray, coeffs []int16, offset []int, f
 			out.Pix[offset] = clampUint8(gray / sum)
 		}
 	}
+	return nil
 }
 
-func resizeGray16(in *image.Gray16, out *image.Gray16, coeffs []int32, offset []int, filterLength int) {
+func resizeGray16(in *image.Gray16, out *image.Gray16, coeffs []int32, offset []int, filterLength int) error {
 	oldBounds := in.Bounds()
 	newBounds := out.Bounds()
+	if newBounds.Max.X == newBounds.Min.X {
+		return nil
+	}
+	if newBounds.Max.Y == newBounds.Min.Y {
+		return nil
+	}
+
 	minX := oldBounds.Min.X * 2
 	maxX := (oldBounds.Max.X - oldBounds.Min.X - 1) * 2
+	maxRow := (newBounds.Max.X - oldBounds.Min.Y - 1) * in.Stride
+	if maxRow+maxX+1 >= len(in.Pix) {
+		return offsetError(maxRow+maxX+1, len(in.Pix))
+	}
 
 	for x := newBounds.Min.X; x < newBounds.Max.X; x++ {
 		row := in.Pix[(x-oldBounds.Min.Y)*in.Stride:]
@@ -252,13 +306,25 @@ func resizeGray16(in *image.Gray16, out *image.Gray16, coeffs []int32, offset []
 			out.Pix[offset+1] = uint8(value)
 		}
 	}
+	return nil
 }
 
-func resizeYCbCr(in *ycc, out *ycc, coeffs []int16, offset []int, filterLength int) {
+func resizeYCbCr(in *ycc, out *ycc, coeffs []int16, offset []int, filterLength int) error {
 	oldBounds := in.Bounds()
 	newBounds := out.Bounds()
+	if newBounds.Max.X == newBounds.Min.X {
+		return nil
+	}
+	if newBounds.Max.Y == newBounds.Min.Y {
+		return nil
+	}
+
 	minX := oldBounds.Min.X * 3
 	maxX := (oldBounds.Max.X - oldBounds.Min.X - 1) * 3
+	maxRow := (newBounds.Max.X - oldBounds.Min.Y - 1) * in.Stride
+	if maxRow+maxX+2 >= len(in.Pix) {
+		return offsetError(maxRow+maxX+2, len(in.Pix))
+	}
 
 	for x := newBounds.Min.X; x < newBounds.Max.X; x++ {
 		row := in.Pix[(x-oldBounds.Min.Y)*in.Stride:]
@@ -292,43 +358,5 @@ func resizeYCbCr(in *ycc, out *ycc, coeffs []int16, offset []int, filterLength i
 			out.Pix[xo+2] = clampUint8(p[2] / sum)
 		}
 	}
-}
-
-func nearestYCbCr(in *ycc, out *ycc, coeffs []bool, offset []int, filterLength int) {
-	oldBounds := in.Bounds()
-	newBounds := out.Bounds()
-	minX := oldBounds.Min.X * 3
-	maxX := (oldBounds.Max.X - oldBounds.Min.X - 1) * 3
-
-	for x := newBounds.Min.X; x < newBounds.Max.X; x++ {
-		row := in.Pix[(x-oldBounds.Min.Y)*in.Stride:]
-		for y := newBounds.Min.Y; y < newBounds.Max.Y; y++ {
-			var p [3]float32
-			var sum float32
-			start := offset[y]
-			ci := (y - newBounds.Min.Y) * filterLength
-			for i := 0; i < filterLength; i++ {
-				if coeffs[ci+i] {
-					xi := start + i
-					switch {
-					case uint(xi) < uint(oldBounds.Max.X):
-						xi *= 3
-					case xi >= oldBounds.Max.X:
-						xi = maxX
-					default:
-						xi = minX
-					}
-					p[0] += float32(row[xi+0])
-					p[1] += float32(row[xi+1])
-					p[2] += float32(row[xi+2])
-					sum++
-				}
-			}
-
-			xo := (y-newBounds.Min.Y)*out.Stride + (x-newBounds.Min.X)*3
-			out.Pix[xo+0] = floatToUint8(p[0] / sum)
-			out.Pix[xo+1] = floatToUint8(p[1] / sum)
-			out.Pix[xo+2] = floatToUint8(p[2] / sum)
-		}
-	}
+	return nil
 }

@@ -97,6 +97,57 @@ const (
 	benchHeight = 200
 )
 
+func benchGeneric(b *testing.B, interp InterpolationFunction) {
+	m := image.NewNRGBA64(image.Rect(0, 0, benchMaxX, benchMaxY))
+	// Initialize m's pixels to create a non-uniform image.
+	for y := m.Rect.Min.Y; y < m.Rect.Max.Y; y++ {
+		for x := m.Rect.Min.X; x < m.Rect.Max.X; x++ {
+			i := m.PixOffset(x, y)
+			m.Pix[i+0] = uint8(y + 4*x)
+			m.Pix[i+1] = uint8(y + 4*x)
+			m.Pix[i+2] = uint8(y + 4*x)
+			m.Pix[i+3] = uint8(y + 4*x)
+			m.Pix[i+4] = uint8(y + 4*x)
+			m.Pix[i+5] = uint8(y + 4*x)
+			m.Pix[i+6] = uint8(4*y + x)
+			m.Pix[i+7] = uint8(4*y + x)
+		}
+	}
+
+	var out image.Image
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		out = Resize(benchWidth, benchHeight, m, interp)
+	}
+	out.At(0, 0)
+}
+
+// The names of some interpolation functions are truncated so that the columns
+// of 'go test -bench' line up.
+func Benchmark_Nearest_Gen(b *testing.B) {
+	benchGeneric(b, NearestNeighbor)
+}
+
+func Benchmark_Bilinear_Gen(b *testing.B) {
+	benchGeneric(b, Bilinear)
+}
+
+func Benchmark_Bicubic_Gen(b *testing.B) {
+	benchGeneric(b, Bicubic)
+}
+
+func Benchmark_Mitchell_Gen(b *testing.B) {
+	benchGeneric(b, MitchellNetravali)
+}
+
+func Benchmark_Lanczos2_Gen(b *testing.B) {
+	benchGeneric(b, Lanczos2)
+}
+
+func Benchmark_Lanczos3_Gen(b *testing.B) {
+	benchGeneric(b, Lanczos3)
+}
+
 func benchRGBA(b *testing.B, interp InterpolationFunction) {
 	m := image.NewRGBA(image.Rect(0, 0, benchMaxX, benchMaxY))
 	// Initialize m's pixels to create a non-uniform image.

@@ -34,7 +34,7 @@ func floatToUint16(x float32) uint16 {
 	return uint16(x)
 }
 
-func nearestGeneric(in image.Image, out *image.RGBA64, scale float64, coeffs []bool, offset []int, filterLength int) {
+func nearestGeneric(in image.Image, out *image.RGBA64, coeffs []bool, offset []int, filterLength int) {
 	newBounds := out.Bounds()
 	maxX := in.Bounds().Dx() - 1
 
@@ -79,7 +79,7 @@ func nearestGeneric(in image.Image, out *image.RGBA64, scale float64, coeffs []b
 	}
 }
 
-func nearestNRGBA(in *image.NRGBA, out *image.NRGBA, scale float64, coeffs []bool, offset []int, filterLength int) {
+func nearestNRGBA(in *image.NRGBA, out *image.NRGBA, coeffs []bool, offset []int, filterLength int) {
 	newBounds := out.Bounds()
 	maxX := in.Bounds().Dx() - 1
 
@@ -118,7 +118,7 @@ func nearestNRGBA(in *image.NRGBA, out *image.NRGBA, scale float64, coeffs []boo
 	}
 }
 
-func nearestRGBA(in *image.RGBA, out *image.RGBA, scale float64, coeffs []bool, offset []int, filterLength int) {
+func nearestRGBA(in *image.RGBA, out *image.RGBA, coeffs []bool, offset []int, filterLength int) {
 	newBounds := out.Bounds()
 	maxX := in.Bounds().Dx() - 1
 
@@ -157,7 +157,7 @@ func nearestRGBA(in *image.RGBA, out *image.RGBA, scale float64, coeffs []bool, 
 	}
 }
 
-func nearestRGBA64(in *image.RGBA64, out *image.RGBA64, scale float64, coeffs []bool, offset []int, filterLength int) {
+func nearestRGBA64(in *image.RGBA64, out *image.RGBA64, coeffs []bool, offset []int, filterLength int) {
 	newBounds := out.Bounds()
 	maxX := in.Bounds().Dx() - 1
 
@@ -204,7 +204,7 @@ func nearestRGBA64(in *image.RGBA64, out *image.RGBA64, scale float64, coeffs []
 	}
 }
 
-func nearestGray(in *image.Gray, out *image.Gray, scale float64, coeffs []bool, offset []int, filterLength int) {
+func nearestGray(in *image.Gray, out *image.Gray, coeffs []bool, offset []int, filterLength int) {
 	newBounds := out.Bounds()
 	maxX := in.Bounds().Dx() - 1
 
@@ -235,7 +235,7 @@ func nearestGray(in *image.Gray, out *image.Gray, scale float64, coeffs []bool, 
 	}
 }
 
-func nearestGray16(in *image.Gray16, out *image.Gray16, scale float64, coeffs []bool, offset []int, filterLength int) {
+func nearestGray16(in *image.Gray16, out *image.Gray16, coeffs []bool, offset []int, filterLength int) {
 	newBounds := out.Bounds()
 	maxX := in.Bounds().Dx() - 1
 
@@ -270,7 +270,7 @@ func nearestGray16(in *image.Gray16, out *image.Gray16, scale float64, coeffs []
 	}
 }
 
-func nearestYCbCr(in *ycc, out *ycc, scale float64, coeffs []bool, offset []int, filterLength int) {
+func nearestYCbCr(in *ycc, out *ycc, coeffs []bool, offset []int, filterLength int) {
 	newBounds := out.Bounds()
 	maxX := in.Bounds().Dx() - 1
 

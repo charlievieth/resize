@@ -101,6 +101,7 @@ func nearestRGBA(in *image.RGBA, out *image.RGBA, scale float64, coeffs []bool, 
 					default:
 						xi = 0
 					}
+					_ = row[xi+3] // eliminate bounds checking
 					rgba[0] += float32(row[xi+0])
 					rgba[1] += float32(row[xi+1])
 					rgba[2] += float32(row[xi+2])
@@ -110,6 +111,7 @@ func nearestRGBA(in *image.RGBA, out *image.RGBA, scale float64, coeffs []bool, 
 			}
 
 			xo := (y-newBounds.Min.Y)*out.Stride + (x-newBounds.Min.X)*4
+			_ = out.Pix[xo+3] // eliminate bounds checking
 			out.Pix[xo+0] = floatToUint8(rgba[0] / sum)
 			out.Pix[xo+1] = floatToUint8(rgba[1] / sum)
 			out.Pix[xo+2] = floatToUint8(rgba[2] / sum)

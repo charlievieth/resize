@@ -16,7 +16,14 @@ THIS SOFTWARE.
 
 package resize
 
-import "image"
+// #cgo CFLAGS: -Wall -Wextra -Wpedantic -pedantic-errors -Wshadow -O3 -march=native
+// #include "nearest.h"
+import "C"
+
+import (
+	"image"
+	"unsafe"
+)
 
 // Keep value in [0,255] range.
 func clampUint8(in int32) uint8 {
@@ -92,7 +99,39 @@ func resizeGeneric(in image.Image, out *image.RGBA64, scale float64, coeffs []in
 	}
 }
 
-func resizeRGBA(in *image.RGBA, out *image.RGBA, scale float64, coeffs []int16, offset []int, filterLength int) {
+func resizeRGBA(in *image.RGBA, out *image.RGBA, scale float64, coeffs []int16,
+	offset []int, filterLength int) {
+
+	// TODO: maybe we need runtime.KeepAlive() here...
+
+	cin := (*C.image)(C.malloc(C.sizeof_image))
+	defer C.free(unsafe.Pointer(cin))
+
+	cin.pix = (*C.uint8_t)(unsafe.Pointer(&in.Pix[0]))
+	cin.stride = C.int64_t(in.Stride)
+	cin.rect.min.x = C.int64_t(in.Rect.Min.X)
+	cin.rect.min.y = C.int64_t(in.Rect.Min.Y)
+	cin.rect.max.x = C.int64_t(in.Rect.Max.X)
+	cin.rect.max.y = C.int64_t(in.Rect.Max.Y)
+
+	cout := (*C.image)(C.malloc(C.sizeof_image))
+	defer C.free(unsafe.Pointer(cout))
+
+	cout.pix = (*C.uint8_t)(unsafe.Pointer(&out.Pix[0]))
+	cout.stride = C.int64_t(out.Stride)
+	cout.rect.min.x = C.int64_t(out.Rect.Min.X)
+	cout.rect.min.y = C.int64_t(out.Rect.Min.Y)
+	cout.rect.max.x = C.int64_t(out.Rect.Max.X)
+	cout.rect.max.y = C.int64_t(out.Rect.Max.Y)
+
+	ccoeffs := (*C.int16_t)(unsafe.Pointer(&coeffs[0]))
+	coffset := (*C.int64_t)(unsafe.Pointer(&offset[0]))
+	length := C.int64_t(filterLength)
+
+	C.nearest_rgba(cin, cout, ccoeffs, coffset, length)
+}
+
+func resizeRGBA_X(in *image.RGBA, out *image.RGBA, scale float64, coeffs []int16, offset []int, filterLength int) {
 	newBounds := out.Bounds()
 	maxX := in.Bounds().Dx() - 1
 
